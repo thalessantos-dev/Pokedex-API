@@ -1,0 +1,1277 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Detalhes do Pokémon</title>
+  <link rel="icon" href="https://media.baamboozle.com/uploads/images/77925/1594129827_86842">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  <style>
+    body {
+      font-family: 'Roboto', Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      background: #dc0a2d;
+      color: #333;
+      min-height: 100vh;
+    }
+  
+    header {
+      background: #ce0a28;
+      color: #fff;
+      text-align: center;
+      padding: 20px;
+      box-shadow: inset 0 -4px 10px rgba(0, 0, 0, 0.2);
+    }
+  
+    header h1 {
+      font-size: 2.5em;
+      font-weight: 700;
+      text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+      margin: 0;
+    }
+  
+    header p {
+      font-size: 1.2em;
+      font-weight: 300;
+      margin: 10px 0 0;
+    }
+
+    .pokemon-details-container {
+      max-width: 1200px;
+      margin: 20px auto;
+      padding: 20px;
+      background: #fff;
+      border-radius: 20px;
+      box-shadow: 0 0 20px rgba(0, 0, 0, 0.2);
+      position: relative;
+      display: none; /* Inicialmente escondido */
+    }
+
+    .pokemon-details-container.visible {
+      display: block;
+      animation: fadeIn 0.5s ease-in;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+
+    .pokemon-details-container::before {
+      content: '';
+      position: absolute;
+      top: 20px;
+      left: 20px;
+      width: 50px;
+      height: 50px;
+      background: #2196f3;
+      border-radius: 50%;
+      border: 5px solid #fff;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+    }
+
+    .pokemon-card {
+      background: linear-gradient(145deg, #ffffff, #f2f2f2);
+      border-radius: 20px;
+      padding: 30px;
+      box-shadow: 4px 4px 10px rgba(0, 0, 0, 0.1), -2px -2px 10px rgba(255, 255, 255, 0.5);
+      margin-bottom: 20px;
+    }
+
+    .pokemon-header {
+      display: flex;
+      align-items: center;
+      gap: 30px;
+      margin-bottom: 30px;
+      position: relative;
+    }
+
+    .shiny-button {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      background: none;
+      border: none;
+      cursor: pointer;
+      font-size: 24px;
+      color: #FFD700;
+      transition: transform 0.3s ease;
+      z-index: 10;
+    }
+
+    .shiny-button:hover {
+      transform: scale(1.2);
+    }
+
+    .pokemon-image {
+      width: 350px;
+      height: 350px;
+      object-fit: contain;
+      filter: drop-shadow(0 0 10px rgba(0, 0, 0, 0.1));
+      transition: transform 0.3s ease;
+    }
+
+    .pokemon-image.shiny-transition {
+      animation: shinyTransition 0.8s ease-in-out;
+    }
+
+    .pokemon-image:hover {
+      transform: scale(1.05);
+    }
+
+    .pokemon-info {
+      flex: 1;
+    }
+
+    .pokemon-number {
+      font-size: 1.2em;
+      font-weight: bold;
+      color: #888;
+      margin-bottom: 10px;
+    }
+
+    .pokemon-name {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      margin-bottom: 4px;
+    }
+
+    .pokemon-name p {
+      margin: 0;
+      font-weight: 600;
+      text-transform: capitalize;
+      color: white;
+      position: relative;
+      z-index: 2;
+      font-size: 15px;
+      letter-spacing: 0.5px;
+      text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+    }
+
+    .pokemon-name .number {
+      color: #ccc;
+      font-size: 13px;
+      text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+    }
+
+    .pokemon-types {
+      display: flex;
+      gap: 10px;
+      margin: 15px 0;
+    }
+
+    .pokemon-type {
+      font-size: 0.9em;
+      padding: 8px 30px;
+      border-radius: 15px;
+      text-transform: capitalize;
+      font-weight: 700;
+      color: #fff;
+    }
+
+    .pokemon-measures {
+      margin-top: 15px;
+      font-size: 1.1em;
+      color: #666;
+    }
+
+    .stats-container {
+      background: #f8f9fa;
+      border-radius: 15px;
+      padding: 20px;
+      margin: 20px 0;
+      border: 2px solid #eee;
+    }
+
+    .stats-container h3 {
+      margin-bottom: 20px;
+      color: #333;
+    }
+
+    .stat-bar {
+      display: flex;
+      align-items: center;
+      margin-bottom: 15px;
+    }
+
+    .stat-name {
+      width: 120px;
+      font-weight: 500;
+      color: #666;
+    }
+
+    .stat-value {
+      width: 40px;
+      text-align: right;
+      margin-right: 10px;
+      font-weight: bold;
+    }
+
+    .stat-bar-fill {
+      flex: 1;
+      height: 8px;
+      background: #eee;
+      border-radius: 4px;
+      overflow: hidden;
+    }
+
+    .stat-bar-value {
+      height: 100%;
+      background: linear-gradient(90deg, #ef5350, #ff8e53);
+      border-radius: 4px;
+      transition: width 0.3s ease;
+    }
+
+    .weaknesses-container {
+      background: #f8f9fa;
+      border-radius: 15px;
+      padding: 20px;
+      margin: 20px 0;
+      border: 2px solid #eee;
+    }
+
+    .weaknesses-container h3 {
+      margin-bottom: 15px;
+      color: #333;
+    }
+
+    .weakness-badges {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .weakness-badge {
+      padding: 8px 20px;
+      border-radius: 20px;
+      color: white;
+      font-size: 0.9em;
+      font-weight: 500;
+      text-transform: capitalize;
+    }
+
+    .evolution-chain {
+      background: #3b3b3b;
+      border-radius: 15px;
+      padding: 30px;
+      margin: 20px 0;
+      text-align: center;
+    }
+
+    .evolution-chain h3 {
+      margin-bottom: 30px;
+      color: white;
+      font-size: 24px;
+    }
+
+    .evolution-items {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 20px;
+      flex-wrap: wrap;
+    }
+
+    .evolution-item {
+      text-align: center;
+      position: relative;
+      width: 220px;
+      min-height: 240px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      cursor: pointer;
+    }
+
+    .evolution-item a {
+      text-decoration: none;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      position: relative;
+      padding-top: 20px;
+      width: 100%;
+    }
+
+    .pokeball-bg {
+      position: absolute;
+      width: 200px;
+      height: 200px;
+      background: linear-gradient(to bottom, 
+        #ff1c1c 0%, 
+        #ff1c1c 45%, 
+        #222 45%, 
+        #222 55%, 
+        white 55%, 
+        white 100%
+      );
+      border-radius: 50%;
+      animation: rotate 10s linear infinite;
+      opacity: 0.1;
+      z-index: 1;
+      top: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+    }
+
+    @keyframes rotate {
+      from {
+        transform: translateX(-50%) rotate(0deg);
+      }
+      to {
+        transform: translateX(-50%) rotate(360deg);
+      }
+    }
+
+    .evolution-item img {
+      position: relative;
+      width: 170px;
+      height: 170px;
+      object-fit: contain;
+      position: relative;
+      z-index: 2;
+      transition: transform 0.3s ease;
+      margin: 15px;
+    }
+
+    .evolution-item:hover img {
+      transform: scale(1.1);
+    }
+
+    .evolution-item p {
+      margin: 0;
+      font-weight: 600;
+      text-transform: capitalize;
+      color: white;
+      position: relative;
+      z-index: 2;
+      font-size: 16px;
+      letter-spacing: 0.5px;
+      text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+    }
+
+    .evolution-arrow {
+      font-size: 24px;
+      color: #666;
+      font-size: 24px;
+      font-weight: bold;
+    }
+
+    .evolution-types {
+      display: flex;
+      justify-content: center;
+      gap: 8px;
+      margin-top: 5px;
+    }
+
+    .evolution-types .pokemon-type {
+      font-size: 12px;
+      padding: 4px 12px;
+      border-radius: 12px;
+      text-transform: capitalize;
+      font-weight: 600;
+      color: #fff;
+      min-width: 65px;
+    }
+
+    .evolution-items {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 40px;
+      padding: 20px 0;
+      flex-wrap: wrap;
+    }
+
+    .evolution-item-wrapper {
+      position: relative;
+      width: 200px;
+      height: 200px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 10px;
+    }
+
+    .regional-forms {
+      background: #3b3b3b;
+      border-radius: 15px;
+      padding: 20px;
+      margin: 20px 0;
+    }
+
+    .regional-forms-title {
+      color: white;
+      font-size: 18px;
+      font-weight: 600;
+      text-align: center;
+      margin-bottom: 20px;
+    }
+
+    .regional-forms-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 30px;
+      justify-items: center;
+    }
+
+    .regional-form-item {
+      text-align: center;
+      position: relative;
+      width: 200px;
+    }
+
+    .regional-form-item a {
+      text-decoration: none;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .regional-form-item .pokeball-bg {
+      position: absolute;
+      width: 180px;
+      height: 180px;
+      background: linear-gradient(to bottom, 
+        #ff1c1c 0%, 
+        #ff1c1c 45%, 
+        #222 45%, 
+        #222 55%, 
+        white 55%, 
+        white 100%
+      );
+      border-radius: 50%;
+      animation: rotate 10s linear infinite;
+      opacity: 0.1;
+      z-index: 1;
+      top: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+    }
+
+    .regional-form-item img {
+      width: 170px;
+      height: 170px;
+      object-fit: contain;
+      position: relative;
+      z-index: 2;
+      transition: transform 0.3s ease;
+    }
+
+    .regional-form-item:hover img {
+      transform: scale(1.1);
+    }
+
+    .regional-form-item .pokemon-name {
+      margin: 10px 0;
+    }
+
+    .regional-form-item .pokemon-name p {
+      margin: 0;
+      font-weight: 600;
+      color: white;
+      font-size: 16px;
+    }
+
+    .regional-form-item .pokemon-name .number {
+      color: #aaa;
+      font-size: 14px;
+    }
+
+    .regional-form-item .pokemon-types {
+      display: flex;
+      gap: 5px;
+      justify-content: center;
+      margin-top: 5px;
+    }
+
+    .regional-form-item .type {
+      padding: 3px 10px;
+      border-radius: 12px;
+      color: white;
+      font-size: 12px;
+      text-transform: capitalize;
+    }
+
+    @keyframes rotate {
+      from { transform: translateX(-50%) rotate(0deg); }
+      to { transform: translateX(-50%) rotate(360deg); }
+    }
+
+    @keyframes sparkle {
+      0% {
+        transform: translate(0, 0) scale(0) rotate(0deg);
+        opacity: 1;
+      }
+      50% {
+        opacity: 1;
+        transform: translate(var(--tx), var(--ty)) scale(1.2) rotate(180deg);
+      }
+      100% {
+        transform: translate(calc(var(--tx) * 1.5), calc(var(--ty) * 1.5)) scale(0) rotate(360deg);
+        opacity: 0;
+      }
+    }
+
+    @keyframes shinyTransition {
+      0% {
+        filter: brightness(1) saturate(1);
+      }
+      50% {
+        filter: brightness(1.5) saturate(1.5);
+      }
+      100% {
+        filter: brightness(1) saturate(1);
+      }
+    }
+
+    .sparkle {
+      position: absolute;
+      width: 15px;
+      height: 15px;
+      background: linear-gradient(45deg, #FFD700, #FFA500);
+      clip-path: polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%);
+      animation: sparkle 0.8s cubic-bezier(0.45, 0.05, 0.55, 0.95) forwards;
+      box-shadow: 0 0 10px rgba(255, 215, 0, 0.8);
+      z-index: 100;
+    }
+
+    /* Estilos do Loading */
+    #loading {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(255, 255, 255, 0.9);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+    }
+
+    .pokeball {
+      width: 60px;
+      height: 60px;
+      position: relative;
+      animation: shake 1.25s cubic-bezier(.36,.07,.19,.97) infinite;
+    }
+
+    .pokeball-top {
+      position: absolute;
+      width: 100%;
+      height: 50%;
+      background: #ff1a1a;
+      border-radius: 30px 30px 0 0;
+    }
+
+    .pokeball-middle {
+      position: absolute;
+      top: 45%;
+      width: 100%;
+      height: 10%;
+      background: #222;
+      z-index: 2;
+    }
+
+    .pokeball-dot {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 20px;
+      height: 20px;
+      background: #222;
+      border: 5px solid #fff;
+      border-radius: 50%;
+      z-index: 3;
+      animation: glow 1.25s ease-in-out infinite;
+    }
+
+    .pokeball-bottom {
+      position: absolute;
+      bottom: 0;
+      width: 100%;
+      height: 50%;
+      background: white;
+      border-radius: 0 0 30px 30px;
+    }
+
+    @keyframes shake {
+      0% { transform: rotate(0deg); }
+      20% { transform: rotate(-10deg); }
+      40% { transform: rotate(10deg); }
+      60% { transform: rotate(-10deg); }
+      80% { transform: rotate(10deg); }
+      100% { transform: rotate(0deg); }
+    }
+
+    @keyframes glow {
+      0% { box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.4); }
+      50% { box-shadow: 0 0 20px 0 rgba(255, 255, 255, 0.4); }
+      100% { box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.4); }
+    }
+
+    .evolution-group {
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+    }
+
+    .mega-evolutions {
+      display: flex;
+      gap: 20px;
+    }
+
+    /* Mega Evolution Styles */
+    .mega-evolution-section {
+      background: #4a4a4a;
+      border-radius: 15px;
+      padding: 20px;
+      margin-top: 20px;
+      display: none;
+    }
+
+    .mega-evolution-section.visible {
+      display: block;
+      animation: fadeIn 0.5s ease-in;
+    }
+
+    .mega-evolution-title {
+      color: #fff;
+      font-size: 1.5em;
+      margin-bottom: 20px;
+      text-align: center;
+      text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+    }
+
+    .mega-forms-container {
+      display: flex;
+      justify-content: center;
+      gap: 30px;
+      flex-wrap: wrap;
+    }
+
+    .mega-form-card {
+      background: #3b3b3b;
+      border-radius: 15px;
+      padding: 20px;
+      text-align: center;
+      width: 200px;
+      transition: transform 0.3s ease;
+    }
+
+    .mega-form-card:hover {
+      transform: scale(1.05);
+    }
+
+    .mega-form-image {
+      width: 150px;
+      height: 150px;
+      object-fit: contain;
+      margin-bottom: 15px;
+    }
+
+    .mega-form-name {
+      color: #fff;
+      font-size: 1.2em;
+      margin-bottom: 10px;
+    }
+
+    .mega-form-types {
+      display: flex;
+      justify-content: center;
+      gap: 8px;
+      margin-top: 10px;
+    }
+
+    .pokemon-description {
+      background: #f8f9fa;
+      border-radius: 15px;
+      padding: 20px;
+      margin: 20px 0;
+      border: 2px solid #eee;
+      font-size: 1.1em;
+      line-height: 1.6;
+      color: #444;
+    }
+
+    .pokemon-description h3 {
+      margin-bottom: 15px;
+      color: #333;
+    }
+
+    .pokemon-description p {
+      margin: 0;
+      font-style: italic;
+    }
+
+    .evolution-types {
+      display: flex;
+      justify-content: center;
+      gap: 8px;
+      margin-top: 5px;
+    }
+
+    .evolution-types .pokemon-type {
+      font-size: 12px;
+      padding: 4px 12px;
+      border-radius: 12px;
+      text-transform: capitalize;
+      font-weight: 600;
+      color: #fff;
+      min-width: 65px;
+    }
+
+    .evolution-items {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 40px;
+      padding: 20px 0;
+      flex-wrap: wrap;
+    }
+
+    .evolution-item-wrapper {
+      position: relative;
+      width: 200px;
+      height: 200px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 10px;
+    }
+
+    .back-button {
+      position: fixed;
+      top: 20px;
+      left: 20px;
+      background: #ff1a1a;
+      color: white;
+      width: 40px;
+      height: 40px;
+      border: none;
+      border-radius: 50%;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+      transition: all 0.3s ease;
+      z-index: 100;
+    }
+
+    .back-button:hover {
+      background: #e60000;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+    }
+
+    /* Tipos de Pokémon */
+    .type-grass { background-color: #78c850; }
+    .type-poison { background-color: #a040a0; }
+    .type-fire { background-color: #f08030; }
+    .type-water { background-color: #6890f0; }
+    .type-flying { background-color: #a890f0; }
+    .type-electric { background-color: #f8d030; }
+    .type-bug { background-color: #306d11; }
+    .type-normal { background-color: #978f8f; }
+    .type-ground { background-color: #aa9100; }
+    .type-fairy { background-color: rgb(255, 123, 233); }
+    .type-fighting { background-color: #d85600; }
+    .type-psychic { background-color: #c520c5; }
+    .type-rock { background-color: #6e5f06; }
+    .type-ghost { background-color: #630463; }
+    .type-ice { background-color: #71bae4; }
+    .type-dragon { background-color: #01309e; }
+    .type-steel { background-color: #a8a8ab; }
+    .type-dark { background-color: #272727; }
+
+    .variant-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      background: rgba(0, 0, 0, 0.2);
+      border-radius: 10px;
+      padding: 5px;
+      transition: transform 0.3s ease;
+    }
+
+    .variant-item:hover {
+      transform: scale(1.05);
+    }
+
+    .variant-item img {
+      width: 60px !important;
+      height: 60px !important;
+    }
+
+    .variant-item p {
+      font-size: 12px !important;
+      margin: 2px 0 !important;
+    }
+
+    .variant-types {
+      display: flex;
+      gap: 4px;
+      margin-top: 2px;
+    }
+
+    .variant-type {
+      padding: 1px 6px;
+      border-radius: 10px;
+      color: white;
+      font-size: 8px;
+      text-transform: capitalize;
+    }
+  </style>
+</head>
+<body>
+  <button onclick="window.location.href='main.html'" class="back-button" title="Voltar para a lista">
+    <i class="fas fa-arrow-left"></i>
+  </button>
+
+  <header>
+    <h1>Detalhes do Pokémon</h1>
+    <p>Informações detalhadas sobre o Pokémon selecionado</p>
+  </header>
+
+  <div id="loading">
+    <div class="pokeball">
+      <div class="pokeball-top"></div>
+      <div class="pokeball-middle">
+        <div class="pokeball-dot"></div>
+      </div>
+      <div class="pokeball-bottom"></div>
+    </div>
+  </div>
+
+  <div class="pokemon-details-container" id="pokemonDetailsContainer">
+    <div class="pokemon-card">
+      <div class="pokemon-header">
+        <button class="shiny-button" onclick="toggleShiny()" title="Toggle Shiny">⭐</button>
+        <img id="pokemon-image" class="pokemon-image" src="" alt="Pokemon Image">
+        <div class="pokemon-info">
+          <div class="pokemon-number" id="pokemon-number"></div>
+          <h2 class="pokemon-name" id="pokemon-name"></h2>
+          <div class="pokemon-types" id="pokemon-types"></div>
+          <div class="pokemon-measures">
+            <p>Altura: <span id="pokemon-height"></span></p>
+            <p>Peso: <span id="pokemon-weight"></span></p>
+          </div>
+        </div>
+      </div>
+
+      <div class="pokemon-description">
+        <h3>Descrição</h3>
+        <p id="pokemon-description"></p>
+      </div>
+
+      <div class="stats-container">
+        <h3>Estatísticas</h3>
+        <div id="stats-content"></div>
+      </div>
+
+      <div class="weaknesses-container">
+        <h3>Fraquezas</h3>
+        <div class="weakness-badges" id="weaknesses-content"></div>
+      </div>
+
+      <div class="evolution-chain">
+        <h3>Cadeia de Evolução</h3>
+        <div id="evolution-chain-content"></div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Função para obter parâmetros da URL
+    const urlParams = new URLSearchParams(window.location.search);
+    const pokemonId = urlParams.get('id');
+
+    // Função para capitalizar primeira letra
+    function capitalize(string) {
+      return string.charAt(0).toUpperCase() + string.slice(1);
+    }
+
+    // Função para criar badge de tipo
+    function createTypeBadge(type) {
+      return `<span class="pokemon-type type-${type}">${capitalize(type)}</span>`;
+    }
+
+    // Função para criar barra de estatística
+    function createStatBar(statName, statValue) {
+      const maxStat = 255;
+      const percentage = (statValue / maxStat) * 100;
+      
+      return `
+        <div class="stat-bar">
+          <span class="stat-name">${statName}</span>
+          <span class="stat-value">${statValue}</span>
+          <div class="stat-bar-fill">
+            <div class="stat-bar-value" style="width: ${percentage}%"></div>
+          </div>
+        </div>
+      `;
+    }
+
+    // Função para formatar o nome do Pokémon
+    function formatPokemonName(name) {
+      // Lista de casos especiais
+      const specialCases = {
+        'nidoran-f': 'Nidoran♀',
+        'nidoran-m': 'Nidoran♂',
+        'mr-mime': 'Mr. Mime',
+        'ho-oh': 'Ho-Oh',
+        'porygon-z': 'Porygon-Z',
+        'mime-jr': 'Mime Jr.',
+        'type-null': 'Type: Null',
+        'jangmo-o': 'Jangmo-o',
+        'hakamo-o': 'Hakamo-o',
+        'kommo-o': 'Kommo-o',
+        'tapu-koko': 'Tapu Koko',
+        'tapu-lele': 'Tapu Lele',
+        'tapu-bulu': 'Tapu Bulu',
+        'tapu-fini': 'Tapu Fini'
+      };
+
+      // Verifica se é um caso especial
+      if (specialCases[name]) {
+        return specialCases[name];
+      }
+
+      
+
+      // Trata nomes com hífen
+      if (name.includes('-')) {
+        return name.split('-')
+          .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+          .join('-');
+      }
+
+      // Formatação padrão: primeira letra maiúscula
+      return name.charAt(0).toUpperCase() + name.slice(1);
+    }
+
+    // Função para carregar os dados do Pokémon
+    async function loadPokemonDetails() {
+      const urlParams = new URLSearchParams(window.location.search);
+      const pokemonId = urlParams.get('id');
+
+      if (!pokemonId) {
+        window.location.href = 'main.html';
+        return;
+      }
+
+      const loadingStartTime = Date.now();
+      const minLoadingTime = 2000; // 2 segundos de loading mínimo
+      const detailsContainer = document.getElementById('pokemonDetailsContainer');
+
+      try {
+        const response = await fetch(`https://pokeapi.co/api/v2/pokemon/${pokemonId}`);
+        const data = await response.json();
+
+        // Salvar as URLs das artworks
+        normalArtwork = `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${pokemonId}.png`;
+        shinyArtwork = `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/shiny/${pokemonId}.png`;
+        
+        // Atualizar imagem e informações básicas
+        document.getElementById('pokemon-image').src = normalArtwork;
+        document.getElementById('pokemon-image').alt = formatPokemonName(data.name);
+        document.getElementById('pokemon-number').textContent = `Nº ${String(data.id).padStart(3, '0')}`;
+        document.getElementById('pokemon-name').textContent = formatPokemonName(data.name);
+        document.getElementById('pokemon-height').textContent = `${data.height / 10}m`;
+        document.getElementById('pokemon-weight').textContent = `${data.weight / 10}kg`;
+
+        // Atualizar tipos
+        const typesContainer = document.getElementById('pokemon-types');
+        typesContainer.innerHTML = data.types.map(type => createTypeBadge(type.type.name)).join('');
+
+        // Carregar descrição do Pokémon
+        const speciesResponse = await fetch(data.species.url);
+        const speciesData = await speciesResponse.json();
+        
+        // Procurar por uma descrição em português, se não encontrar, usa a primeira em inglês
+        const description = speciesData.flavor_text_entries.find(
+          entry => entry.language.name === 'pt-br'
+        )?.flavor_text || speciesData.flavor_text_entries[0].flavor_text;
+
+        document.getElementById('pokemon-description').textContent = description
+          .replace(/\f/g, ' ')  // Remove caracteres de formatação
+          .replace(/\n/g, ' ')  // Remove quebras de linha
+          .replace(/\r/g, ' ')  // Remove retornos
+          .replace(/\v/g, ' ')  // Remove tabulações verticais
+          .replace(/\s+/g, ' '); // Remove espaços extras
+
+        // Atualizar estatísticas
+        const statsContainer = document.getElementById('stats-content');
+        statsContainer.innerHTML = data.stats.map(stat => {
+          const statName = stat.stat.name
+            .replace('special-attack', 'Ataque Especial')
+            .replace('special-defense', 'Defesa Especial')
+            .replace('attack', 'Ataque')
+            .replace('defense', 'Defesa')
+            .replace('speed', 'Velocidade')
+            .replace('hp', 'Pontos de Vida');
+          return createStatBar(statName, stat.base_stat);
+        }).join('');
+
+        // Carregar fraquezas
+        const typeResponse = await fetch(data.types[0].type.url);
+        const typeData = await typeResponse.json();
+        const weaknessesContainer = document.getElementById('weaknesses-content');
+        weaknessesContainer.innerHTML = '';
+
+        // Processar fraquezas
+        typeData.damage_relations.double_damage_from.forEach(type => {
+          const badge = document.createElement('span');
+          badge.className = `weakness-badge type-${type.name}`;
+          badge.textContent = capitalize(type.name);
+          weaknessesContainer.appendChild(badge);
+        });
+
+        // Carregar evoluções
+        const evolutionResponse = await fetch(speciesData.evolution_chain.url);
+        const evolutionData = await evolutionResponse.json();
+
+        // Função recursiva para processar a cadeia de evolução
+        async function processEvolutionChain(chain) {
+          const evolutions = [];
+          let current = chain;
+
+          while (current) {
+            try {
+              const response = await fetch(current.species.url);
+              const speciesData = await response.json();
+              const pokemonResponse = await fetch(`https://pokeapi.co/api/v2/pokemon/${speciesData.id}`);
+              const pokemonData = await pokemonResponse.json();
+
+              // Verificar formas alternativas (incluindo Mega Evoluções)
+              const megaForms = [];
+              for (const variety of speciesData.varieties) {
+                if (!variety.is_default) {
+                  try {
+                    const variantResponse = await fetch(variety.pokemon.url);
+                    const variantData = await variantResponse.json();
+                    
+                    // Verificar se é uma Mega Evolução
+                    const isMega = variantData.name.toLowerCase().includes('mega');
+                    if (isMega) {
+                      megaForms.push({
+                        name: formatPokemonName(variantData.name),
+                        image: variantData.sprites.other['official-artwork'].front_default,
+                        id: variantData.id,
+                        types: variantData.types.map(type => type.type.name)
+                      });
+                    }
+                  } catch (error) {
+                    console.error('Erro ao buscar forma alternativa:', error);
+                  }
+                }
+              }
+
+              // Buscar variantes regionais
+              const variants = [];
+              for (const variety of speciesData.varieties) {
+                if (!variety.is_default) {
+                  try {
+                    const variantResponse = await fetch(variety.pokemon.url);
+                    const variantData = await variantResponse.json();
+                    
+                    // Verificar se é uma forma regional
+                    const isRegionalForm = variantData.forms.some(form => 
+                      form.name.includes('alola') || 
+                      form.name.includes('galar') || 
+                      form.name.includes('hisui') ||
+                      form.name.includes('paldea')
+                    );
+
+                    if (isRegionalForm) {
+                      variants.push({
+                        name: formatPokemonName(variantData.name),
+                        image: variantData.sprites.other['official-artwork'].front_default,
+                        id: variantData.id,
+                        types: variantData.types.map(type => type.type.name)
+                      });
+                    }
+                  } catch (error) {
+                    console.error('Erro ao buscar variante:', error);
+                  }
+                }
+              }
+
+              evolutions.push({
+                name: current.species.name,
+                image: pokemonData.sprites.other['official-artwork'].front_default,
+                id: pokemonData.id,
+                types: pokemonData.types.map(type => type.type.name),
+                variants: variants,
+                megaForms: megaForms
+              });
+              current = current.evolves_to[0];
+            } catch (error) {
+              console.error('Erro ao processar evolução:', error);
+              break;
+            }
+          }
+
+          return evolutions;
+        }
+
+        const evolutions = await processEvolutionChain(evolutionData.chain);
+        const evolutionChainContainer = document.getElementById('evolution-chain-content');
+        
+        // HTML base para a cadeia de evolução
+        let evolutionHTML = `
+          <div class="evolution-items">
+            ${evolutions.map((evolution, index) => `
+              ${index > 0 ? '<div class="evolution-arrow">></div>' : ''}
+              <div class="evolution-item" onclick="window.location.href='details.html?id=${evolution.id}'">
+                <div class="pokeball-bg"></div>
+                <img src="${evolution.image}" alt="${evolution.name}">
+                <p>${formatPokemonName(evolution.name)} <span class="number">Nº ${String(evolution.id).padStart(3, '0')}</span></p>
+                <div class="evolution-types">
+                  ${evolution.types.map(type => createTypeBadge(type)).join('')}
+                </div>
+              </div>
+            `).join('')}
+          </div>
+        `;
+
+        // Adicionar seção de Mega Evolução se existir
+        const megaEvolutions = evolutions.reduce((acc, evolution) => acc.concat(evolution.megaForms || []), []);
+        if (megaEvolutions.length > 0) {
+          evolutionHTML += `
+            <h3>Mega Evolução</h3>
+            <div class="evolution-items">
+              ${megaEvolutions.map((mega, index) => `
+                ${index > 0 ? '<div class="evolution-arrow">></div>' : ''}
+                <div class="evolution-item" onclick="window.location.href='details.html?id=${mega.id}'">
+                  <div class="pokeball-bg"></div>
+                  <img src="${mega.image}" alt="${formatPokemonName(mega.name)}">
+                  <p>${formatPokemonName(mega.name)} <span class="number">Nº ${String(mega.id).padStart(3, '0')}</span></p>
+                  <div class="evolution-types">
+                    ${mega.types.map(type => createTypeBadge(type)).join('')}
+                  </div>
+                </div>
+              `).join('')}
+            </div>
+          `;
+        }
+
+        evolutionChainContainer.innerHTML = evolutionHTML;
+
+      } catch (error) {
+        console.error('Erro ao carregar detalhes do Pokémon:', error);
+      }
+
+      // Garantir tempo mínimo de loading
+      const elapsedTime = Date.now() - loadingStartTime;
+      const remainingTime = Math.max(0, minLoadingTime - elapsedTime);
+      await new Promise(resolve => setTimeout(resolve, remainingTime));
+
+      // Remover loading e mostrar detalhes com animação
+      document.getElementById('loading').remove();
+      detailsContainer.classList.add('visible');
+
+    }
+
+    let isShiny = false;
+    let normalArtwork = '';
+    let shinyArtwork = '';
+
+    function createSparkle(x, y) {
+      const sparkle = document.createElement('div');
+      sparkle.className = 'sparkle';
+      
+      // Cria um ângulo aleatório para a direção da explosão
+      const angle = Math.random() * Math.PI * 2;
+      const distance = 50 + Math.random() * 150; // Distância variável para mais dinamismo
+      
+      // Calcula a posição final com base no ângulo e distância
+      const tx = Math.cos(angle) * distance;
+      const ty = Math.sin(angle) * distance;
+      
+      sparkle.style.setProperty('--tx', `${tx}px`);
+      sparkle.style.setProperty('--ty', `${ty}px`);
+      sparkle.style.left = `${x}px`;
+      sparkle.style.top = `${y}px`;
+      
+      // Adiciona um atraso aleatório para criar um efeito mais natural
+      sparkle.style.animationDelay = `${Math.random() * 0.2}s`;
+      
+      document.querySelector('.pokemon-header').appendChild(sparkle);
+      setTimeout(() => sparkle.remove(), 1000);
+    }
+
+    function createSparkleEffect() {
+      const image = document.getElementById('pokemon-image');
+      const rect = image.getBoundingClientRect();
+      const centerX = rect.width / 2;
+      const centerY = rect.height / 2;
+
+      // Adiciona classe de transição para o efeito brilhante
+      image.classList.add('shiny-transition');
+      setTimeout(() => image.classList.remove('shiny-transition'), 800);
+
+      // Cria mais estrelas para um efeito mais dramático
+      const numberOfSparkles = 30;
+      
+      // Cria círculos concêntricos de estrelas
+      for (let i = 0; i < numberOfSparkles; i++) {
+        setTimeout(() => {
+          // Primeiro círculo (próximo ao Pokémon)
+          createSparkle(centerX + (Math.random() * 40 - 20), 
+                       centerY + (Math.random() * 40 - 20));
+          
+          // Segundo círculo (médio alcance)
+          if (i % 2 === 0) {
+            createSparkle(centerX + (Math.random() * 80 - 40), 
+                         centerY + (Math.random() * 80 - 40));
+          }
+          
+          // Terceiro círculo (longo alcance)
+          if (i % 3 === 0) {
+            createSparkle(centerX + (Math.random() * 120 - 60), 
+                         centerY + (Math.random() * 120 - 60));
+          }
+        }, i * 20); // Reduz o intervalo para uma explosão mais rápida
+      }
+    }
+
+    function toggleShiny() {
+      const pokemonImage = document.getElementById('pokemon-image');
+      isShiny = !isShiny;
+      
+      if (isShiny) {
+        createSparkleEffect();
+        setTimeout(() => {
+          pokemonImage.src = shinyArtwork;
+        }, 400); // Atrasa a mudança da imagem para sincronizar com a animação
+      } else {
+        createSparkleEffect();
+        setTimeout(() => {
+          pokemonImage.src = normalArtwork;
+        }, 400);
+      }
+    }
+
+    // Carregar detalhes quando a página carregar
+    window.addEventListener('load', () => {
+      loadPokemonDetails();
+    });
+
+    document.addEventListener('DOMContentLoaded', () => {
+    const backButton = document.getElementById('back-button');
+    if (backButton) {
+        backButton.addEventListener('click', () => {
+            window.location.href = 'main.html';
+        });
+    }
+});
+  </script>
+</body>
+</html>
